@@ -1,0 +1,34 @@
+version: 2.1
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
+
+jobs:
+  build:
+    docker:
+      - image: cimg/node:lts
+        auth:
+          username: tamermokhtar
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.14
+      - run:
+          name: show docker version
+          command: docker --version
+      - run:
+          name: build docker image
+          command: docker build -t simple-reverse-proxy .
+      - run:
+          name: tag docker image
+          command:  docker tag simple-reverse-proxy tamermokhtar/simple-reverse-proxy:latest    
+      - run:
+          name: login to dockerhub
+          command: echo "$DOCKERHUB_PASSWORD" | docker login -u tamermokhtar --password-stdin
+      - run:
+          name: push to docker
+          command: docker push tamermokhtar/simple-reverse-proxy
